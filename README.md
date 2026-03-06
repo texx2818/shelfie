@@ -13,16 +13,21 @@ lives at [http://localhost:4120](http://localhost:4120).
 ```yaml
 # docker-compose.yml
 services:
-  shelfie:
+  catalogrr:
+    build:
+      context: ./backend
     image: ghcr.io/texx2818/catalogrr:latest
     ports:
       - "4120:4120"
     volumes:
       - catalogrr-data:/data
     restart: unless-stopped
+    environment:
+      - PORT=4120
+      - DB_PATH=/data/catalogrr.db
 
 volumes:
-  catalogrr--data:
+  catalogrr-data:
 ```
 
 open [http://localhost:4120](http://localhost:4120).
