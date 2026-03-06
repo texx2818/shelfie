@@ -1,13 +1,24 @@
+<<<<<<< HEAD
 # Shelfie
 
 A self-hosted catalog for physical media. Books, movies, music, games — anything you own.
 
 ## Running with Docker
+=======
+# shelfie
+
+personal self-hosted catalog for your physical media. books, movies, music, games — anything you own.
+
+## running with docker
+
+download the zip. run the docker compose.
+>>>>>>> ffbae0df547ae992658001452c78f3a4576060b2
 
 ```bash
 docker compose up -d
 ```
 
+<<<<<<< HEAD
 Open [http://localhost:3000](http://localhost:3000).
 
 Data is stored in a named Docker volume and survives container restarts and upgrades.
@@ -29,6 +40,12 @@ volumes:
   shelfie-data:
 ```
 
+=======
+Open [http://localhost:4120](http://localhost:4120).
+
+Data is stored in a named Docker volume and survives container restarts and upgrades.
+
+>>>>>>> ffbae0df547ae992658001452c78f3a4576060b2
 ## Adding items
 
 - **Barcode / ISBN** — type or scan a barcode; Shelfie looks it up in Open Library (books) or UPC Item DB (everything else)
@@ -72,7 +89,11 @@ docker cp ./shelfie.db shelfie:/data/shelfie.db
 
 | Variable | Default | Description |
 |---|---|---|
+<<<<<<< HEAD
 | `PORT` | `3000` | HTTP port |
+=======
+| `PORT` | `4120` | HTTP port |
+>>>>>>> ffbae0df547ae992658001452c78f3a4576060b2
 | `DB_PATH` | `/data/shelfie.db` | SQLite database path |
 
 ## License
