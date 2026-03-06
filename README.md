@@ -4,6 +4,8 @@ personal self-hosted catalog for your physical media. books, movies, music, game
 
 ## running with docker
 
+download the zip. run the docker compose.
+
 ```bash
 docker compose up -d
 ```
@@ -11,23 +13,6 @@ docker compose up -d
 Open [http://localhost:4120](http://localhost:4120).
 
 Data is stored in a named Docker volume and survives container restarts and upgrades.
-
-## Using a prebuilt image
-
-```yaml
-# docker-compose.yml
-services:
-  shelfie:
-    image: ghcr.io/youruser/shelfie:latest
-    ports:
-      - "4120:4120"
-    volumes:
-      - shelfie-data:/data
-    restart: unless-stopped
-
-volumes:
-  shelfie-data:
-```
 
 ## Adding items
 
