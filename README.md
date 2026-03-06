@@ -53,3 +53,7 @@ column names are case-insensitive. `title` is the only required field.
 | `cover_url` | |
 
 export your library at any time via the **↓ Export CSV** button.
+<<<<<<< HEAD
+=======
+
+>>>>>>> fdae24825926570bfeed131e9ca5a9697771475d
