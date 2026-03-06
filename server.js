@@ -43,6 +43,11 @@ db.exec(`
 `);
 
 const app = express();
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  res.setHeader('Server', 'catalogrr');
+  next();
+});
 
 app.use(cors());
 app.use(express.json());
