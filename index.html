@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shelfie</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%230e0e0e'/><rect x='6' y='22' width='20' height='3' rx='1' fill='%23e8c547'/><rect x='6' y='7' width='3' height='18' rx='1' fill='%23e8c547'/><rect x='23' y='7' width='3' height='18' rx='1' fill='%23e8c547'/><rect x='9' y='10' width='5' height='10' rx='1' fill='%235b9bd5'/><rect x='15' y='8' width='4' height='12' rx='1' fill='%234ec94e'/><rect x='20' y='11' width='3' height='9' rx='1' fill='%23c864ff'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0e0e0e;
+    --bg2:     #161616;
+    --bg3:     #1f1f1f;
+    --bg4:     #2a2a2a;
+    --border:  #2e2e2e;
+    --border2: #3d3d3d;
+    --text:    #e8e8e8;
+    --text2:   #a0a0a0;
+    --text3:   #666;
+    --accent:  #e8c547;
+    --accent2: #c9a82e;
+    --red:     #e05454;
+    --green:   #4ec94e;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  #app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--text3); font-weight: 400; }
+
+  .header-stats {
+    display: flex;
+    gap: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .stat-chip { display: flex; gap: 6px; align-items: center; }
+  .stat-chip strong { color: var(--text2); }
+
+  .header-actions { margin-left: auto; display: flex; gap: 8px; }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  aside {
+    width: 180px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 12px 0;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    padding: 4px 0 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .sidebar-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0 16px 6px;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text2);
+    transition: background 0.1s, color 0.1s;
+    user-select: none;
+  }
+  .sidebar-item:hover { background: var(--bg3); color: var(--text); }
+  .sidebar-item.active { background: var(--bg4); color: var(--accent); }
+  .sidebar-item .type-icon { margin-right: 8px; font-size: 14px; }
+  .sidebar-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--bg4);
+    padding: 1px 6px;
+    border-radius: 2px;
+  }
+  .sidebar-item.active .sidebar-count { background: var(--border2); color: var(--accent); }
+
+  .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .toolbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .search-box { flex: 1; max-width: 360px; position: relative; }
+  .search-box input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 6px 10px 6px 32px;
+    outline: none;
+    border-radius: 2px;
+    transition: border-color 0.15s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  .toolbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .count-display {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 12px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text2);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--text3); color: var(--text); background: var(--bg4); }
+  .btn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+  .btn.danger { border-color: var(--red); color: var(--red); }
+  .btn.danger:hover { background: rgba(224, 84, 84, 0.1); }
+  .btn.small { padding: 3px 8px; font-size: 11px; }
+  .btn.ghost { background: transparent; border-color: transparent; }
+  .btn.ghost:hover { background: var(--bg3); border-color: var(--border); }
+
+  .table-wrap { flex: 1; overflow: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  thead { position: sticky; top: 0; z-index: 10; background: var(--bg2); }
+
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { color: var(--text2); }
+  th.sorted { color: var(--accent); }
+
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: middle;
+  }
+  tr:hover td { background: var(--bg2); }
+
+  .title-cell { color: var(--text); max-width: 280px; }
+  .item-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 220px;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+  .item-title:hover { color: var(--accent); }
+  .item-cover {
+    width: 28px;
+    height: 28px;
+    object-fit: cover;
+    border-radius: 1px;
+    margin-right: 10px;
+    vertical-align: middle;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+  .badge-book  { background: rgba(91,155,213,0.15); color: #5b9bd5; border: 1px solid rgba(91,155,213,0.3); }
+  .badge-movie { background: rgba(232,197,71,0.15); color: #e8c547; border: 1px solid rgba(232,197,71,0.3); }
+  .badge-music { background: rgba(78,201,78,0.15);  color: #4ec94e; border: 1px solid rgba(78,201,78,0.3); }
+  .badge-game  { background: rgba(200,100,255,0.15); color: #c864ff; border: 1px solid rgba(200,100,255,0.3); }
+  .badge-tv    { background: rgba(255,140,50,0.15);  color: #ff8c32; border: 1px solid rgba(255,140,50,0.3); }
+  .badge-other { background: rgba(160,160,160,0.12); color: #a0a0a0; border: 1px solid rgba(160,160,160,0.2); }
+
+  .stars { color: var(--accent); font-size: 12px; letter-spacing: 1px; }
+
+  .row-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.1s; }
+  tr:hover .row-actions { opacity: 1; }
+
+  .check-cell { width: 36px; }
+  .check-cell input { cursor: pointer; accent-color: var(--accent); }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text3);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state p { margin-top: 8px; font-size: 12px; }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    width: 560px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 3px;
+    animation: modal-in 0.15s ease;
+  }
+  @keyframes modal-in {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.04em;
+  }
+  .modal-body { padding: 20px; }
+  .modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 7px 10px;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus { border-color: var(--accent); }
+  .field select option { background: var(--bg3); }
+  .field textarea { resize: vertical; min-height: 70px; }
+
+  .lookup-bar {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .lookup-bar label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+  .lookup-bar input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 10px;
+    border-radius: 2px;
+    outline: none;
+  }
+  .lookup-bar input:focus { border-color: var(--accent); }
+
+  .search-results {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    margin-top: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .result-item:hover { background: var(--bg4); }
+  .result-item:last-child { border-bottom: none; }
+  .result-thumb {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    background: var(--bg4);
+    border-radius: 1px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .result-title { font-size: 13px; color: var(--text); }
+  .result-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border2);
+    border-radius: 3px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text3);
+  }
+  .drop-zone:hover,
+  .drop-zone.dragover { border-color: var(--accent); background: rgba(232, 197, 71, 0.04); color: var(--text2); }
+  .drop-zone input { display: none; }
+
+  .detail-cover {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    background: var(--bg3);
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .detail-field .df-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin-bottom: 3px;
+  }
+  .detail-field .df-value { color: var(--text); font-size: 13px; }
+
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent);
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    border-radius: 2px;
+    z-index: 999;
+    transform: translateY(60px);
+    opacity: 0;
+    transition: all 0.2s;
+    max-width: 300px;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.error { border-left-color: var(--red); }
+
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">shelf<span>ie</span></div>
+    <div class="header-stats" id="header-stats"></div>
+    <div class="header-actions">
+      <button class="btn" id="btn-import">↑ Import CSV</button>
+      <button class="btn" id="btn-export">↓ Export CSV</button>
+      <button class="btn primary" id="btn-add">+ Add Item</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside id="sidebar"></aside>
+
+    <div class="content">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="search-input" placeholder="search titles, creators, genres...">
+        </div>
+        <div class="toolbar-right">
+          <span class="count-display" id="count-display"></span>
+          <button class="btn small danger" id="bulk-delete-btn" hidden>Delete selected</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="check-cell"><input type="checkbox" id="select-all"></th>
+              <th data-sort="title">Title</th>
+              <th data-sort="creator">Creator</th>
+              <th data-sort="type">Type</th>
+              <th data-sort="year">Year</th>
+              <th data-sort="rating">Rating</th>
+              <th>Format</th>
+              <th>Genre</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="items-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add / edit modal -->
+<div class="overlay" id="add-modal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">ADD ITEM</span>
+      <button class="btn ghost small" data-close="add-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="lookup-bar">
+        <label for="barcode-input">BARCODE / ISBN</label>
+        <input type="text" id="barcode-input" placeholder="scan or type barcode...">
+        <button class="btn small" id="barcode-btn">Lookup</button>
+      </div>
+
+      <div class="field full" style="margin-bottom: 4px;">
+        <label for="title-search-input">Search by title to auto-fill</label>
+        <input type="text" id="title-search-input" placeholder="start typing...">
+      </div>
+      <div id="search-results-container"></div>
+
+      <div style="height: 16px;"></div>
+
+      <input type="hidden" id="edit-id">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="f-title">Title *</label>
+          <input type="text" id="f-title">
+        </div>
+        <div class="field">
+          <label for="f-creator">Creator / Author / Artist</label>
+          <input type="text" id="f-creator">
+        </div>
+        <div class="field">
+          <label for="f-type">Type</label>
+          <select id="f-type">
+            <option value="book">Book</option>
+            <option value="movie">Movie</option>
+            <option value="music">Music</option>
+            <option value="game">Game</option>
+            <option value="tv">TV</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-year">Year</label>
+          <input type="text" id="f-year" placeholder="e.g. 2001">
+        </div>
+        <div class="field">
+          <label for="f-format">Format</label>
+          <input type="text" id="f-format" placeholder="e.g. Blu-ray, Vinyl, Hardback">
+        </div>
+        <div class="field">
+          <label for="f-genre">Genre</label>
+          <input type="text" id="f-genre">
+        </div>
+        <div class="field">
+          <label for="f-rating">Rating</label>
+          <select id="f-rating">
+            <option value="">—</option>
+            <option value="1">★</option>
+            <option value="2">★★</option>
+            <option value="3">★★★</option>
+            <option value="4">★★★★</option>
+            <option value="5">★★★★★</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-status">Status</label>
+          <select id="f-status">
+            <option value="owned">Owned</option>
+            <option value="wishlist">Wishlist</option>
+            <option value="lent">Lent Out</option>
+            <option value="sold">Sold</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="f-cover">Cover Image URL</label>
+          <input type="url" id="f-cover" placeholder="https://...">
+        </div>
+        <div class="field full">
+          <label for="f-notes">Notes</label>
+          <textarea id="f-notes"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-close="add-modal">Cancel</button>
+      <button class="btn primary" id="save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div class="overlay" id="import-modal" role="dialog" aria-modal="true">
+  <div class="modal" style="width: 480px;">
+    <div class="modal-header">
+      <span class="modal-title">IMPORT CSV</span>
+      <button class="btn ghost small" data-close="import-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: 13px; color: var(--text2); margin-bottom: 16px;">
+        Expected columns:
+        <code style="font-family: var(--mono); color: var(--accent); font-size: 11px;">
+          title, creator, type, year, barcode, genre, format, rating, notes, status
+        </code>
+      </p>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="csv-file" accept=".csv">
+        <div style="font-size: 24px; margin-bottom: 8px;">📂</div>
+        Click or drop a CSV file here
+      </div>
+      <div id="import-result" style="margin-top: 12px; font-family: var(--mono); font-size: 12px; display: none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="overlay" id="detail-modal" role="dialog" aria-modal="true">
+  <div class="modal" style="width: 500px;">
+    <div class="modal-header">
+      <span class="modal-title">ITEM DETAIL</span>
+      <button class="btn ghost small" data-close="detail-modal">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn danger" id="detail-delete-btn">Delete</button>
+      <button class="btn" id="detail-edit-btn">Edit</button>
+      <button class="btn primary" data-close="detail-modal">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const API = '/api';
+
+const state = {
+  items:       [],
+  total:       0,
+  stats:       [],
+  filter:      'all',
+  sort:        'created_at',
+  order:       'desc',
+  search:      '',
+  selectedIds: new Set(),
+  detailItem:  null,
+};
+
+// Search results are kept here rather than on window
+let lastSearchResults = [];
+let searchDebounce, titleSearchDebounce, toastTimeout;
+
+const TYPES = [
+  { key: 'all',   label: 'All Items', icon: '▦' },
+  { key: 'book',  label: 'Books',     icon: '📖' },
+  { key: 'movie', label: 'Movies',    icon: '🎬' },
+  { key: 'music', label: 'Music',     icon: '💿' },
+  { key: 'game',  label: 'Games',     icon: '🎮' },
+  { key: 'tv',    label: 'TV',        icon: '📺' },
+  { key: 'other', label: 'Other',     icon: '📦' },
+];
+
+
+// Bootstrap -------------------------------------------------------------------
+
+async function init() {
+  bindStaticEvents();
+  await loadItems();
+}
+
+function bindStaticEvents() {
+  document.getElementById('btn-add').addEventListener('click', openAddModal);
+  document.getElementById('btn-import').addEventListener('click', () => openModal('import-modal'));
+  document.getElementById('btn-export').addEventListener('click', exportCSV);
+  document.getElementById('bulk-delete-btn').addEventListener('click', bulkDelete);
+  document.getElementById('select-all').addEventListener('change', onSelectAll);
+  document.getElementById('save-btn').addEventListener('click', saveItem);
+  document.getElementById('barcode-btn').addEventListener('click', lookupBarcode);
+  document.getElementById('detail-delete-btn').addEventListener('click', deleteFromDetail);
+  document.getElementById('detail-edit-btn').addEventListener('click', editFromDetail);
+
+  document.getElementById('search-input').addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      state.search = document.getElementById('search-input').value.trim();
+      loadItems();
+    }, 280);
+  });
+
+  document.getElementById('title-search-input').addEventListener('input', () => {
+    clearTimeout(titleSearchDebounce);
+    titleSearchDebounce = setTimeout(runTitleSearch, 380);
+  });
+
+  document.getElementById('f-type').addEventListener('change', () => {
+    if (document.getElementById('title-search-input').value.trim().length >= 2) {
+      runTitleSearch();
+    }
+  });
+
+  document.getElementById('barcode-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') lookupBarcode();
+  });
+
+  // Sort headers
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => onSortClick(th.dataset.sort));
+  });
+
+  // Close modals on backdrop click or [data-close] buttons
+  document.querySelectorAll('.overlay').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target === el) closeModal(el.id);
+    });
+  });
+  document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', () => closeModal(btn.dataset.close));
+  });
+
+  // CSV drop zone
+  const dropZone = document.getElementById('drop-zone');
+  const csvFile  = document.getElementById('csv-file');
+
+  dropZone.addEventListener('click', () => csvFile.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) uploadCSV(e.dataTransfer.files[0]);
+  });
+  csvFile.addEventListener('change', () => {
+    if (csvFile.files[0]) uploadCSV(csvFile.files[0]);
+  });
+
+  // Keyboard shortcut: Escape closes the topmost open modal
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const open = [...document.querySelectorAll('.overlay.open')].pop();
+    if (open) closeModal(open.id);
+  });
+}
+
+
+// Data ------------------------------------------------------------------------
+
+async function loadItems() {
+  const params = new URLSearchParams({
+    type:  state.filter,
+    sort:  state.sort,
+    order: state.order,
+    q:     state.search,
+    limit: 500,
+  });
+
+  try {
+    const res  = await fetch(`${API}/items?${params}`);
+    const data = await res.json();
+    state.items = data.items;
+    state.total = data.total;
+    state.stats = data.stats;
+    renderSidebar();
+    renderTable();
+    renderHeaderStats();
+  } catch {
+    toast('Could not reach the server', true);
+  }
+}
+
+
+// Rendering -------------------------------------------------------------------
+
+function renderSidebar() {
+  const totalAll = state.stats.reduce((n, s) => n + s.count, 0);
+  const countFor = key => (key === 'all' ? totalAll : (state.stats.find(s => s.type === key)?.count ?? 0));
+
+  document.getElementById('sidebar').innerHTML = `
+    <div class="sidebar-section">
+      <div class="sidebar-label">Library</div>
+      ${TYPES.map(t => `
+        <div class="sidebar-item${state.filter === t.key ? ' active' : ''}" data-filter="${t.key}">
+          <span><span class="type-icon">${t.icon}</span>${t.label}</span>
+          <span class="sidebar-count">${countFor(t.key)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  document.querySelectorAll('.sidebar-item[data-filter]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.filter = el.dataset.filter;
+      loadItems();
+    });
+  });
+}
+
+function renderHeaderStats() {
+  const total = state.stats.reduce((n, s) => n + s.count, 0);
+  document.getElementById('header-stats').innerHTML = `
+    <span class="stat-chip"><strong>${total}</strong> items</span>
+    ${state.stats.map(s => `<span class="stat-chip"><strong>${s.count}</strong> ${s.type}</span>`).join('')}
+  `;
+}
+
+function renderTable() {
+  const body    = document.getElementById('items-body');
+  const countEl = document.getElementById('count-display');
+
+  countEl.textContent = `${state.items.length} / ${state.total}`;
+
+  if (state.items.length === 0) {
+    body.innerHTML = `
+      <tr><td colspan="9">
+        <div class="empty-state">
+          <div class="empty-icon">◫</div>
+          <div>${state.search ? 'No results for that search' : 'No items yet'}</div>
+          <p>${state.search ? 'Try different keywords' : 'Add your first item using the button above'}</p>
+        </div>
+      </td></tr>
+    `;
+    return;
+  }
+
+  body.innerHTML = state.items.map(item => `
+    <tr>
+      <td class="check-cell">
+        <input type="checkbox" data-id="${item.id}" ${state.selectedIds.has(item.id) ? 'checked' : ''}>
+      </td>
+      <td class="title-cell">
+        ${item.cover_url
+          ? `<img class="item-cover" src="${esc(item.cover_url)}" loading="lazy" alt=""
+               onerror="this.style.display='none'">`
+          : ''}
+        <span class="item-title" data-id="${item.id}">${esc(item.title)}</span>
+      </td>
+      <td>${esc(item.creator || '—')}</td>
+      <td><span class="badge badge-${item.type}">${item.type}</span></td>
+      <td style="font-family: var(--mono); font-size: 12px;">${esc(item.year || '—')}</td>
+      <td><span class="stars">${'★'.repeat(item.rating || 0)}${'☆'.repeat(5 - (item.rating || 0))}</span></td>
+      <td>${esc(item.format || '—')}</td>
+      <td style="max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        ${esc(item.genre || '—')}
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn ghost small" data-action="edit" data-id="${item.id}">edit</button>
+          <button class="btn ghost small danger" data-action="delete" data-id="${item.id}">del</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Bind row-level events in one delegation pass
+  body.querySelectorAll('.item-title[data-id]').forEach(el => {
+    el.addEventListener('click', () => showDetail(el.dataset.id));
+  });
+  body.querySelectorAll('input[type="checkbox"][data-id]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.checked ? state.selectedIds.add(cb.dataset.id) : state.selectedIds.delete(cb.dataset.id);
+      syncBulkDeleteBtn();
+    });
+  });
+  body.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.action === 'edit')   editItem(btn.dataset.id);
+      if (btn.dataset.action === 'delete') deleteItem(btn.dataset.id);
+    });
+  });
+
+  // Sort indicators
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.sort === state.sort);
+    const arrow = th.dataset.sort === state.sort ? (state.order === 'asc' ? ' ↑' : ' ↓') : '';
+    th.textContent = th.textContent.replace(/ [↑↓]$/, '') + arrow;
+  });
+
+  syncBulkDeleteBtn();
+}
+
+function syncBulkDeleteBtn() {
+  const btn = document.getElementById('bulk-delete-btn');
+  const n   = state.selectedIds.size;
+  btn.hidden = n === 0;
+  btn.textContent = `Delete ${n} selected`;
+}
+
+
+// Sorting & filtering ---------------------------------------------------------
+
+function onSortClick(col) {
+  state.order = state.sort === col && state.order === 'asc' ? 'desc' : 'asc';
+  state.sort  = col;
+  loadItems();
+}
+
+function onSelectAll(e) {
+  state.items.forEach(item => {
+    e.target.checked ? state.selectedIds.add(item.id) : state.selectedIds.delete(item.id);
+  });
+  renderTable();
+}
+
+
+// CRUD ------------------------------------------------------------------------
+
+function openAddModal() {
+  clearForm();
+  document.getElementById('modal-title').textContent = 'ADD ITEM';
+  document.getElementById('edit-id').value = '';
+  openModal('add-modal');
+}
+
+async function editItem(id) {
+  const res  = await fetch(`${API}/items/${id}`);
+  const item = await res.json();
+  fillForm(item);
+  document.getElementById('modal-title').textContent = 'EDIT ITEM';
+  document.getElementById('edit-id').value = id;
+  openModal('add-modal');
+}
+
+function editFromDetail() {
+  closeModal('detail-modal');
+  if (state.detailItem) editItem(state.detailItem.id);
+}
+
+async function saveItem() {
+  const id   = document.getElementById('edit-id').value;
+  const ratingVal = document.getElementById('f-rating').value;
+  const body = {
+    title:    document.getElementById('f-title').value.trim(),
+    creator:  document.getElementById('f-creator').value.trim(),
+    type:     document.getElementById('f-type').value,
+    year:     document.getElementById('f-year').value.trim(),
+    format:   document.getElementById('f-format').value.trim(),
+    genre:    document.getElementById('f-genre').value.trim(),
+    rating:   ratingVal ? parseInt(ratingVal, 10) : null,
+    status:   document.getElementById('f-status').value,
+    cover_url: document.getElementById('f-cover').value.trim(),
+    notes:    document.getElementById('f-notes').value.trim(),
+  };
+
+  if (!body.title) {
+    toast('Title is required', true);
+    return;
+  }
+
+  const res = await fetch(
+    id ? `${API}/items/${id}` : `${API}/items`,
+    {
+      method:  id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    }
+  );
+
+  if (res.ok) {
+    closeModal('add-modal');
+    toast(id ? 'Item updated' : 'Item added');
+    loadItems();
+  } else {
+    const err = await res.json().catch(() => ({}));
+    toast(err.error || 'Save failed', true);
+  }
+}
+
+async function deleteItem(id) {
+  if (!confirm('Delete this item?')) return;
+  const res = await fetch(`${API}/items/${id}`, { method: 'DELETE' });
+  if (res.ok) { toast('Deleted'); loadItems(); }
+}
+
+async function deleteFromDetail() {
+  if (!state.detailItem) return;
+  if (!confirm('Delete this item?')) return;
+  const res = await fetch(`${API}/items/${state.detailItem.id}`, { method: 'DELETE' });
+  if (res.ok) { closeModal('detail-modal'); toast('Deleted'); loadItems(); }
+}
+
+async function bulkDelete() {
+  const ids = [...state.selectedIds];
+  if (!ids.length || !confirm(`Delete ${ids.length} items?`)) return;
+
+  await fetch(`${API}/items/bulk-delete`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ ids }),
+  });
+
+  state.selectedIds.clear();
+  toast(`Deleted ${ids.length} items`);
+  loadItems();
+}
+
+
+// Detail view -----------------------------------------------------------------
+
+async function showDetail(id) {
+  const res  = await fetch(`${API}/items/${id}`);
+  const item = await res.json();
+  state.detailItem = item;
+
+  document.getElementById('detail-body').innerHTML = `
+    ${item.cover_url
+      ? `<img class="detail-cover" src="${esc(item.cover_url)}" alt="${esc(item.title)}"
+           onerror="this.style.display='none'">`
+      : ''}
+    <div class="detail-grid">
+      <div class="detail-field">
+        <div class="df-label">Title</div>
+        <div class="df-value">${esc(item.title)}</div>
+      </div>
+      <div class="detail-field">
+        <div class="df-label">Creator</div>
+        <div class="df-value">${esc(item.creator || '—')}</div>
+      </div>
+      <div class="detail-field">
+        <div class="df-label">Type</div>
+        <div class="df-value"><span class="badge badge-${item.type}">${item.type}</span></div>
+      </div>
+      <div class="detail-field">
+        <div class="df-label">Year</div>
+        <div class="df-value">${esc(item.year || '—')}</div>
+      </div>
+      <div class="detail-field">
+        <div class="df-label">Format</div>
+        <div class="df-value">${esc(item.format || '—')}</div>
+      </div>
+      <div class="detail-field">
+        <div class="df-label">Genre</div>
+        <div class="df-value">${esc(item.genre || '—')}</div>
+      </div>
+      <div class="detail-field">
+        <div class="df-label">Rating</div>
+        <div class="df-value stars">
+          ${'★'.repeat(item.rating || 0)}${'☆'.repeat(5 - (item.rating || 0))}
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="df-label">Status</div>
+        <div class="df-value">${esc(item.status)}</div>
+      </div>
+      ${item.barcode ? `
+        <div class="detail-field">
+          <div class="df-label">Barcode</div>
+          <div class="df-value" style="font-family: var(--mono); font-size: 12px;">${esc(item.barcode)}</div>
+        </div>` : ''}
+      ${item.notes ? `
+        <div class="detail-field" style="grid-column: 1 / -1;">
+          <div class="df-label">Notes</div>
+          <div class="df-value">${esc(item.notes)}</div>
+        </div>` : ''}
+    </div>
+  `;
+
+  openModal('detail-modal');
+}
+
+
+// Barcode / title lookup ------------------------------------------------------
+
+async function lookupBarcode() {
+  const barcode = document.getElementById('barcode-input').value.trim();
+  if (!barcode) return;
+
+  const btn = document.getElementById('barcode-btn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(`${API}/lookup/barcode/${encodeURIComponent(barcode)}`);
+    const data = await res.json();
+
+    if (data.found && data.data) {
+      fillForm(data.data);
+      document.getElementById('barcode-input').value = '';
+      toast('Barcode found — form filled');
+    } else {
+      toast('Barcode not found — fill in manually', true);
+    }
+  } finally {
+    btn.textContent = 'Lookup';
+    btn.disabled = false;
+  }
+}
+
+async function runTitleSearch() {
+  const q         = document.getElementById('title-search-input').value.trim();
+  const type      = document.getElementById('f-type').value;
+  const container = document.getElementById('search-results-container');
+
+  if (q.length < 2) { container.innerHTML = ''; return; }
+
+  container.innerHTML = `
+    <div style="padding: 8px 12px; font-family: var(--mono); font-size: 11px; color: var(--text3);">
+      <span class="spinner"></span>Searching…
+    </div>
+  `;
+
+  try {
+    const res  = await fetch(`${API}/lookup/search?q=${encodeURIComponent(q)}&type=${type}`);
+    const data = await res.json();
+
+    if (!data.results?.length) {
+      container.innerHTML = `
+        <div style="padding: 8px 12px; font-family: var(--mono); font-size: 11px; color: var(--text3);">
+          No results
+        </div>
+      `;
+      return;
+    }
+
+    lastSearchResults = data.results;
+
+    const list = document.createElement('div');
+    list.className = 'search-results';
+
+    data.results.slice(0, 8).forEach((result, i) => {
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      item.innerHTML = `
+        ${result.cover_url
+          ? `<img class="result-thumb" src="${esc(result.cover_url)}" loading="lazy" alt="" onerror="this.style.display='none'">`
+          : '<div class="result-thumb"></div>'}
+        <div>
+          <div class="result-title">${esc(result.title)}</div>
+          <div class="result-meta">
+            ${esc(result.creator || '')}${result.year ? ' · ' + result.year : ''}
+            &nbsp;<span class="badge badge-${result.type}" style="font-size: 9px;">${result.type}</span>
+          </div>
+        </div>
+      `;
+      item.addEventListener('click', () => {
+        fillForm(lastSearchResults[i]);
+        document.getElementById('title-search-input').value = '';
+        container.innerHTML = '';
+        toast('Form filled from search result');
+      });
+      list.appendChild(item);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(list);
+  } catch {
+    container.innerHTML = '';
+  }
+}
+
+
+// Form helpers ----------------------------------------------------------------
+
+function clearForm() {
+  ['f-title', 'f-creator', 'f-year', 'f-format', 'f-genre', 'f-cover', 'f-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-type').value   = 'book';
+  document.getElementById('f-rating').value = '';
+  document.getElementById('f-status').value = 'owned';
+  document.getElementById('barcode-input').value = '';
+  document.getElementById('title-search-input').value = '';
+  document.getElementById('search-results-container').innerHTML = '';
+}
+
+function fillForm(item) {
+  const set = (id, val) => { if (val != null && val !== '') document.getElementById(id).value = val; };
+  set('f-title',   item.title);
+  set('f-creator', item.creator);
+  set('f-type',    item.type);
+  set('f-year',    item.year);
+  set('f-format',  item.format);
+  set('f-genre',   item.genre);
+  set('f-rating',  item.rating);
+  set('f-status',  item.status);
+  set('f-cover',   item.cover_url);
+  set('f-notes',   item.notes);
+}
+
+
+// CSV -------------------------------------------------------------------------
+
+async function uploadCSV(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const resultEl = document.getElementById('import-result');
+  resultEl.style.display   = 'block';
+  resultEl.style.color     = 'var(--text3)';
+  resultEl.textContent     = 'Importing…';
+
+  const res  = await fetch(`${API}/import/csv`, { method: 'POST', body: formData });
+  const data = await res.json();
+
+  if (res.ok) {
+    resultEl.style.color = 'var(--green)';
+    resultEl.textContent = `✓ Imported ${data.imported} of ${data.total} rows`;
+    toast(`Imported ${data.imported} items`);
+    loadItems();
+    setTimeout(() => closeModal('import-modal'), 1800);
+  } else {
+    resultEl.style.color = 'var(--red)';
+    resultEl.textContent = `Error: ${data.error}`;
+  }
+}
+
+function exportCSV() {
+  window.location.href = `${API}/export/csv`;
+}
+
+
+// Modal helpers ---------------------------------------------------------------
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+
+// Toast -----------------------------------------------------------------------
+
+function toast(msg, isError = false) {
+  const el     = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = isError ? 'show error' : 'show';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+
+// Utilities -------------------------------------------------------------------
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
+}
+
+
+init();
+</script>
+</body>
+</html>

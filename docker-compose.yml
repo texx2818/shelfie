@@ -1,0 +1,16 @@
+services:
+  shelfie:
+    build:
+      context: ./backend
+    container_name: shelfie
+    ports:
+      - "4120:4120"
+    volumes:
+      - shelfie-data:/data
+    restart: unless-stopped
+    environment:
+      - PORT=4120
+      - DB_PATH=/data/shelfie.db
+
+volumes:
+  shelfie-data:

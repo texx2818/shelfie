@@ -1,0 +1,10 @@
+node_modules/
+npm-debug.log*
+
+.env
+.env.*
+
+# local sqlite db if someone runs it outside docker
+*.db
+*.db-shm
+*.db-wal
